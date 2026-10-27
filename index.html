@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#231c33">
+<title>我爱你 💛</title>
+<style>
+  :root{
+    --night1:#2a2140;
+    --night2:#171225;
+    --ink:#fbf3e6;
+    --ink-soft:#d8cbe0;
+    --paper:#fff6e6;
+    --paper-ink:#4a3b4f;
+    --gold:#ffd36e;
+    --pink:#ff9ec7;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 62%, rgba(255,190,120,0.16), transparent 70%),
+      linear-gradient(180deg, var(--night1) 0%, #241b38 55%, var(--night2) 100%);
+    color:var(--ink);
+    font-family:'Yuanti SC','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none; -webkit-user-select:none;
+  }
+  #fx{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+
+  /* guirnalda de lucecitas */
+  .garland{ position:fixed; top:0; left:0; right:0; height:90px; z-index:1; pointer-events:none; }
+
+  /* mesa */
+  .table{
+    position:fixed; left:0; right:0; bottom:0; height:26vh; z-index:1;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 2px, transparent 2px 38px),
+      linear-gradient(180deg, #6b4a3a 0%, #523628 30%, #3c271d 100%);
+    box-shadow:0 -10px 40px rgba(0,0,0,0.35) inset;
+  }
+  .table::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:6px;
+    background:linear-gradient(180deg, rgba(255,220,180,0.25), transparent);
+  }
+
+  .stage{
+    position:fixed; inset:0; z-index:2;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    padding:0 16px calc(26vh - 2.2vh);
+  }
+  .title{
+    position:fixed; top:max(96px, 12vh); left:0; right:0; z-index:2;
+    text-align:center; pointer-events:none;
+  }
+  .title h1{
+    font-family:'Kaiti SC','STKaiti','KaiTi','Noto Serif CJK SC',serif;
+    font-weight:400; font-size:clamp(1.9rem,8vw,2.6rem); letter-spacing:0.3em; padding-left:0.3em;
+    text-shadow:0 0 24px rgba(255,211,110,0.45);
+  }
+  .title p{ margin-top:0.7rem; font-size:0.95rem; letter-spacing:0.12em; color:var(--ink-soft); }
+
+  #jarWrap{
+    position:relative; width:min(66vw, 300px); cursor:pointer;
+    filter:drop-shadow(0 18px 24px rgba(0,0,0,0.35));
+    transition:transform 0.25s ease;
+  }
+  #jarWrap:active{ transform:scale(0.98); }
+  #jar{ width:100%; height:auto; display:block; overflow:visible; }
+  #lid{ transform-origin:150px 60px; transform-box:view-box; transition:transform 0.5s cubic-bezier(.3,1.4,.5,1); }
+  #lid.open{ transform:translateY(-26px) rotate(-14deg); }
+  .twinkle{ animation:tw 3s ease-in-out infinite; }
+  @keyframes tw{ 0%,100%{ opacity:1; } 50%{ opacity:0.72; } }
+
+  .hint{
+    margin-top:1.1rem; font-size:0.95rem; letter-spacing:0.12em; color:var(--ink);
+    text-shadow:0 1px 6px rgba(0,0,0,0.5);
+    animation:breathe 2.6s ease-in-out infinite;
+    position:relative; z-index:3;
+  }
+  @keyframes breathe{ 0%,100%{ opacity:0.45; } 50%{ opacity:1; } }
+
+  #countBtn{
+    position:fixed; z-index:4; top:max(16px, env(safe-area-inset-top)); right:16px;
+    background:rgba(255,255,255,0.08); color:var(--ink);
+    border:1px solid rgba(255,255,255,0.22); border-radius:999px;
+    padding:0.5em 1.1em; font-size:0.9rem; font-family:inherit; cursor:pointer;
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  }
+
+  /* estrella que vuela */
+  #flyStar{ position:fixed; left:0; top:0; z-index:8; pointer-events:none; display:none; filter:drop-shadow(0 0 18px rgba(255,220,140,0.8)); }
+
+  /* nota */
+  #overlay{
+    position:fixed; inset:0; z-index:7; background:rgba(15,10,25,0.55);
+    opacity:0; pointer-events:none; transition:opacity 0.6s ease;
+    -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  }
+  #overlay.on{ opacity:1; pointer-events:auto; }
+  #note{
+    position:fixed; z-index:9; left:50%; top:50%;
+    width:min(86vw, 360px);
+    transform:translate(-50%,-50%) scale(0.6) rotate(-6deg);
+    opacity:0; pointer-events:none;
+    transition:transform 0.7s cubic-bezier(.2,1.3,.4,1), opacity 0.5s ease;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 33px, rgba(200,160,140,0.25) 33px 34px),
+      linear-gradient(160deg, #fffaf0, var(--paper));
+    color:var(--paper-ink);
+    border-radius:18px;
+    padding:2.2rem 1.6rem 1.6rem;
+    box-shadow:0 30px 70px rgba(0,0,0,0.5);
+    text-align:center;
+  }
+  #note.on{ transform:translate(-50%,-50%) scale(1) rotate(0deg); opacity:1; pointer-events:auto; }
+  #note::before{ /* cinta */
+    content:''; position:absolute; top:-12px; left:50%; width:96px; height:24px; margin-left:-48px;
+    background:repeating-linear-gradient(90deg, rgba(255,158,199,0.8) 0 8px, rgba(255,186,214,0.8) 8px 16px);
+    transform:rotate(-3deg);
+  }
+  #noteNum{ font-size:0.85rem; letter-spacing:0.2em; color:#b07a8f; }
+  #noteMsg{
+    font-family:'Kaiti SC','STKaiti','KaiTi','Noto Serif CJK SC',serif;
+    font-size:clamp(1.3rem,5.6vw,1.55rem); line-height:1.75; margin:1.1rem 0 1.5rem;
+    color:#3e3044;
+  }
+  .btn{
+    background:linear-gradient(180deg,#ffb3d2,#ff8fbf); color:#4a2238;
+    border:0; border-radius:999px; padding:0.7em 2em;
+    font-size:1rem; font-family:inherit; font-weight:600; cursor:pointer;
+    box-shadow:0 6px 16px rgba(255,120,180,0.35);
+  }
+
+  /* toast */
+  #toast{
+    position:fixed; z-index:10; left:50%; bottom:calc(26vh + 12px);
+    transform:translateX(-50%) translateY(10px);
+    background:rgba(30,22,44,0.9); color:var(--ink);
+    border:1px solid rgba(255,255,255,0.15);
+    padding:0.75em 1.3em; border-radius:999px; font-size:0.95rem;
+    opacity:0; pointer-events:none; transition:opacity 0.4s ease, transform 0.4s ease;
+    white-space:nowrap; max-width:calc(100vw - 32px); overflow:hidden; text-overflow:ellipsis;
+  }
+  #toast.on{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* colección */
+  #drawer{
+    position:fixed; z-index:11; left:0; right:0; bottom:0;
+    max-height:72vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+    background:linear-gradient(180deg,#fffaf0,#fff1dc); color:var(--paper-ink);
+    border-radius:24px 24px 0 0;
+    padding:1.4rem 16px calc(1.6rem + env(safe-area-inset-bottom));
+    transform:translateY(105%); transition:transform 0.5s cubic-bezier(.2,.9,.3,1);
+    box-shadow:0 -20px 50px rgba(0,0,0,0.4);
+  }
+  #drawer.on{ transform:none; }
+  #drawer h2{ font-weight:600; font-size:1.15rem; text-align:center; margin-bottom:1rem; }
+  #drawer ul{ list-style:none; display:flex; flex-direction:column; gap:10px; }
+  #drawer li{
+    background:#fff; border-radius:14px; padding:0.85rem 1rem;
+    font-family:'Kaiti SC','STKaiti','KaiTi','Noto Serif CJK SC',serif;
+    font-size:1.08rem; line-height:1.6; color:#3e3044;
+    border-left:6px solid var(--c, #ffd36e);
+  }
+  #drawer li small{ display:block; font-family:inherit; font-size:0.78rem; color:#a68a96; margin-bottom:2px; }
+  #drawer .empty{ text-align:center; color:#a68a96; padding:1rem 0; }
+  #drawer .close{ display:block; margin:1.2rem auto 0; }
+
+  @media (prefers-reduced-motion: reduce){
+    .twinkle, .hint{ animation:none; }
+    #note, #lid, #drawer{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<svg class="garland" id="garland" aria-hidden="true"></svg>
+<div class="table"></div>
+
+<div class="title">
+  <h1>我爱你</h1>
+</div>
+
+<button id="countBtn">我的星星 0/30</button>
+
+<div class="stage">
+  <div id="jarWrap" role="button" aria-label="打开许愿瓶，取一颗星星">
+    <svg id="jar" viewBox="0 0 300 400" aria-hidden="true">
+      <defs>
+        <clipPath id="inside">
+          <path d="M70 112 Q48 120 46 150 L46 340 Q46 382 92 384 L208 384 Q254 382 254 340 L254 150 Q252 120 230 112 Z"/>
+        </clipPath>
+        <linearGradient id="glass" x1="0" x2="1">
+          <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+          <stop offset="0.25" stop-color="#ffffff" stop-opacity="0.05"/>
+          <stop offset="0.8" stop-color="#ffffff" stop-opacity="0.04"/>
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0.14"/>
+        </linearGradient>
+        <radialGradient id="innerGlow" cx="0.5" cy="0.85" r="0.6">
+          <stop offset="0" stop-color="#ffd38a" stop-opacity="0.35"/>
+          <stop offset="1" stop-color="#ffd38a" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="cork" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#d8a877"/>
+          <stop offset="1" stop-color="#a87346"/>
+        </linearGradient>
+      </defs>
+      <!-- brillo interior -->
+      <path d="M70 112 Q48 120 46 150 L46 340 Q46 382 92 384 L208 384 Q254 382 254 340 L254 150 Q252 120 230 112 Z" fill="url(#innerGlow)"/>
+      <!-- estrellitas -->
+      <g id="stars" clip-path="url(#inside)"></g>
+      <!-- vidrio -->
+      <path d="M96 72 L96 98 Q96 106 86 108 Q44 118 42 150 L42 342 Q42 388 92 388 L208 388 Q258 388 258 342 L258 150 Q256 118 214 108 Q204 106 204 98 L204 72"
+            fill="url(#glass)" stroke="rgba(255,255,255,0.55)" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M62 160 Q60 250 64 330" stroke="rgba(255,255,255,0.45)" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <path d="M78 140 Q74 146 73 156" stroke="rgba(255,255,255,0.35)" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M238 200 Q241 260 236 320" stroke="rgba(255,255,255,0.18)" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <!-- cuello / cinta -->
+      <rect x="92" y="86" width="116" height="12" rx="6" fill="#ff9ec7"/>
+      <path d="M150 92 C136 80 118 84 124 96 C128 104 142 98 150 92 Z" fill="#ff86b9"/>
+      <path d="M150 92 C164 80 182 84 176 96 C172 104 158 98 150 92 Z" fill="#ff86b9"/>
+      <path d="M146 96 L136 122 M154 96 L166 120" stroke="#ff86b9" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="150" cy="93" r="6" fill="#ff6fa8"/>
+      <!-- etiqueta -->
+      <line x1="208" y1="94" x2="232" y2="128" stroke="#e8c9a0" stroke-width="1.5"/>
+      <g transform="rotate(12 238 146)">
+        <rect x="216" y="128" width="46" height="34" rx="5" fill="#fff4dd" stroke="#e0c49a"/>
+        <circle cx="224" cy="135" r="2.5" fill="#e0c49a"/>
+        <path d="M228 152 l6 -8 6 8 -2 -6 6 -3 -7 0 z" fill="#ffc94d"/>
+      </g>
+      <!-- tapa de corcho -->
+      <g id="lid">
+        <rect x="100" y="44" width="100" height="34" rx="7" fill="url(#cork)"/>
+        <rect x="100" y="44" width="100" height="8" rx="4" fill="#e6bb8c"/>
+        <circle cx="122" cy="62" r="2" fill="#8f5f38" opacity="0.6"/>
+        <circle cx="168" cy="68" r="2.5" fill="#8f5f38" opacity="0.5"/>
+        <circle cx="185" cy="57" r="1.6" fill="#8f5f38" opacity="0.5"/>
+      </g>
+    </svg>
+  </div>
+  <div class="hint" id="hint">轻触瓶子，取一颗星星</div>
+</div>
+
+<svg id="flyStar" width="80" height="80" viewBox="-40 -40 80 80" aria-hidden="true"></svg>
+<div id="overlay"></div>
+<div id="note" role="dialog" aria-live="polite">
+  <div id="noteNum"></div>
+  <div id="noteMsg"></div>
+  <button class="btn" id="keepBtn">收下啦 💛</button>
+</div>
+<div id="toast"></div>
+<div id="drawer" aria-label="我的星星">
+  <h2>我收集的星星</h2>
+  <ul id="list"></ul>
+  <button class="btn close" id="refill" style="display:none">把星星放回瓶子里 ✨</button>
+  <button class="btn close" id="closeDrawer">关上</button>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* =======================================================================
+     MENSAJES — uno por estrella, en orden (uno nuevo cada día).
+     ======================================================================= */
+  var MESSAGES = [
+    '今天也辛苦了，抱抱你。',
+    '记得喝水哦，一大杯！',
+    '你笑起来的样子，是我最喜欢的风景。',
+    '我最喜欢听你讲你一天里发生的事。',
+    '今天也要好好吃饭，不许只吃零食。',
+    '我在地球的另一边，悄悄为你加油。',
+    '你已经很棒了，真的。',
+    '一想到你，我的心就变得软软的。',
+    '想你的时候，我就抬头看看星星。',
+    '不开心的时候可以告诉我，我一直都在。',
+    '你是我见过最勇敢的女孩。',
+    '今天记得抱抱猫咪，也替我抱一下。',
+    '天冷了，多穿一件衣服。',
+    '你不需要完美，做你自己就很好。',
+    '给你一个大大的拥抱，隔着屏幕也算数。',
+    '今天的任务：开心一点点就够了。',
+    '有我在，别怕。',
+    '你像蝴蝶一样，慢慢飞，也会飞得很远。',
+    '记得吃维生素！',
+    '遇见你，是我最幸运的事。',
+    '如果今天很难，明天会好一点的。',
+    '你努力的样子，我都看在眼里。',
+    '深呼吸，放松肩膀，你做得很好。',
+    '不管发生什么，我都站在你这边。',
+    '今晚做个甜甜的梦。',
+    '偷偷告诉你：我又想你了。',
+    '你值得被温柔对待，尤其是被你自己。',
+    '我们一起慢慢长大吧。',
+    '等我，我会去中国找你。',
+    '这是最后一颗星星，可是我对你的爱永远不会用完。我爱你。'
+  ];
+  var COLORS = ['#ffd36e','#ff9ec7','#9ad8ff','#c3a8ff','#a8e6b8','#ffb38a'];
+  var N = MESSAGES.length;
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------- guardado (por dispositivo) ---------------- */
+  var KEY = 'xuyuanping_v1';
+  var state = { opened:[], last:'' };
+  var canSave = true;
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(raw){ var s = JSON.parse(raw); if(s && Array.isArray(s.opened)) state = s; }
+  }catch(e){ canSave = false; }
+  function save(){ if(!canSave) return; try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ canSave = false; } }
+  function today(){
+    var d = new Date();
+    return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  }
+
+  /* ---------------- forma de estrella de papel ---------------- */
+  function starPoints(R){
+    var pts = [];
+    for(var i=0;i<10;i++){
+      var a = -Math.PI/2 + i*Math.PI/5;
+      var r = i%2 ? R*0.52 : R;
+      pts.push([Math.cos(a)*r, Math.sin(a)*r]);
+    }
+    return pts;
+  }
+  function starMarkup(R, color){
+    var p = starPoints(R);
+    var poly = p.map(function(q){ return q[0].toFixed(2)+','+q[1].toFixed(2); }).join(' ');
+    var creases = '';
+    for(var i=0;i<10;i+=2){ creases += 'M0 0 L'+p[i][0].toFixed(2)+' '+p[i][1].toFixed(2)+' '; }
+    for(var j=1;j<10;j+=2){ creases += 'M0 0 L'+p[j][0].toFixed(2)+' '+p[j][1].toFixed(2)+' '; }
+    var sw = (R*0.42).toFixed(2);
+    return '<polygon points="'+poly+'" fill="'+color+'" stroke="'+color+'" stroke-width="'+sw+'" stroke-linejoin="round"/>' +
+           '<path d="'+creases+'" stroke="rgba(255,255,255,0.45)" stroke-width="'+(R*0.06).toFixed(2)+'" fill="none"/>' +
+           '<polygon points="'+poly+'" fill="none" stroke="rgba(120,70,60,0.18)" stroke-width="'+(R*0.05).toFixed(2)+'" stroke-linejoin="round"/>' +
+           '<ellipse cx="'+(-R*0.25).toFixed(2)+'" cy="'+(-R*0.3).toFixed(2)+'" rx="'+(R*0.22).toFixed(2)+'" ry="'+(R*0.12).toFixed(2)+'" fill="rgba(255,255,255,0.55)" transform="rotate(-30)"/>';
+  }
+
+  /* ---------------- llenar el frasco ---------------- */
+  var NS = 'http://www.w3.org/2000/svg';
+  var starsG = document.getElementById('stars');
+  var slots = [];   // posición de cada estrella (índice 0 = abajo)
+  (function layout(){
+    var R = 17, row = 0, placed = 0;
+    while(placed < N){
+      var y = 362 - row*27;
+      var offset = (row % 2) ? 21 : 0;
+      for(var x = 74 + offset; x <= 232 && placed < N; x += 42){
+        slots.push({ x: x + (Math.random()-0.5)*10, y: y + (Math.random()-0.5)*6, rot: Math.random()*72, R: R + (Math.random()-0.5)*3 });
+        placed++;
+      }
+      row++;
+    }
+  })();
+  // cada estrella se queda con un color fijo
+  var starColor = MESSAGES.map(function(_, i){ return COLORS[i % COLORS.length]; });
+
+  function renderJar(){
+    starsG.innerHTML = '';
+    var remaining = N - state.opened.length;
+    // las que quedan ocupan los lugares de abajo; la de arriba es la siguiente en salir
+    for(var k=0;k<remaining;k++){
+      var s = slots[k];
+      var idx = N - 1 - k; // la estrella de más arriba es el siguiente mensaje
+      var g = document.createElementNS(NS, 'g');
+      g.setAttribute('transform', 'translate('+s.x.toFixed(1)+' '+s.y.toFixed(1)+') rotate('+s.rot.toFixed(1)+')');
+      if(k % 4 === 1) g.setAttribute('class', 'twinkle');
+      g.innerHTML = starMarkup(s.R, starColor[idx]);
+      starsG.appendChild(g);
+    }
+    document.getElementById('countBtn').textContent = '我的星星 ' + state.opened.length + '/' + N;
+    var hint = document.getElementById('hint');
+    if(remaining === 0) hint.textContent = '星星都收集完啦，轻触瓶子看看它们';
+    else hint.textContent = '轻触瓶子，取一颗星星';
+  }
+
+  /* ---------------- sacar una estrella ---------------- */
+  var busy = false;
+  var jarWrap = document.getElementById('jarWrap');
+  var lid = document.getElementById('lid');
+  var fly = document.getElementById('flyStar');
+  var overlay = document.getElementById('overlay');
+  var note = document.getElementById('note');
+
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('on');
+    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('on'); }, 2600);
+  }
+
+  jarWrap.addEventListener('click', function(){
+    if(busy) return;
+    var remaining = N - state.opened.length;
+    if(remaining === 0){ openDrawer(); return; }
+    takeStar();
+  });
+
+  function takeStar(){
+    busy = true;
+    var idx = state.opened.length;           // siguiente mensaje
+    var k = N - 1 - idx;                      // su lugar en el frasco
+    var s = slots[k];
+    var color = starColor[idx];
+
+    lid.classList.add('open');
+
+    // posición en pantalla de la estrella dentro del frasco
+    var svg = document.getElementById('jar');
+    var box = svg.getBoundingClientRect();
+    var scale = box.width / 300;
+    var sx = box.left + s.x*scale, sy = box.top + s.y*scale;
+
+    // quitarla del frasco
+    state.opened.push(idx);
+    state.last = today();
+    save();
+    setTimeout(renderJar, 120);
+
+    fly.innerHTML = '<g>' + starMarkup(24, color) + '</g>';
+    fly.style.display = 'block';
+    var size = 80;
+    var startScale = (s.R*scale*2.3) / size;
+    var neckX = box.left + 150*scale, neckY = box.top + 40*scale;
+    var cx = window.innerWidth/2, cy = window.innerHeight*0.42;
+
+    var frames = [
+      { transform: 'translate('+(sx-size/2)+'px,'+(sy-size/2)+'px) scale('+startScale+') rotate('+s.rot+'deg)', opacity: 1 },
+      { transform: 'translate('+(neckX-size/2)+'px,'+(neckY-size/2-30)+'px) scale('+(startScale*1.2)+') rotate('+(s.rot+120)+'deg)', opacity: 1, offset: 0.35 },
+      { transform: 'translate('+(cx-size/2)+'px,'+(cy-size/2)+'px) scale(2.4) rotate('+(s.rot+400)+'deg)', opacity: 1, offset: 0.8 },
+      { transform: 'translate('+(cx-size/2)+'px,'+(cy-size/2)+'px) scale(3.4) rotate('+(s.rot+440)+'deg)', opacity: 0 }
+    ];
+    var dur = reduced ? 10 : 1700;
+    var anim = fly.animate ? fly.animate(frames, { duration: dur, easing: 'cubic-bezier(.35,.1,.25,1)', fill: 'forwards' }) : null;
+
+    var trail = setInterval(function(){
+      var r = fly.getBoundingClientRect();
+      spawnDust(r.left + r.width/2, r.top + r.height/2, 2, color);
+    }, 40);
+
+    function showNote(){
+      clearInterval(trail);
+      fly.style.display = 'none';
+      burst(cx, cy, color);
+      document.getElementById('noteNum').textContent = '第 ' + (idx+1) + ' 颗星星';
+      document.getElementById('noteMsg').textContent = MESSAGES[idx];
+      overlay.classList.add('on');
+      note.classList.add('on');
+      setTimeout(function(){ lid.classList.remove('open'); }, 300);
+    }
+    if(anim){ anim.onfinish = showNote; } else { setTimeout(showNote, dur); }
+  }
+
+  function closeNote(){
+    note.classList.remove('on');
+    overlay.classList.remove('on');
+    busy = false;
+    renderJar();
+  }
+  document.getElementById('keepBtn').addEventListener('click', closeNote);
+  overlay.addEventListener('click', closeNote);
+
+  /* ---------------- colección ---------------- */
+  var drawer = document.getElementById('drawer');
+  function openDrawer(){
+    var ul = document.getElementById('list');
+    ul.innerHTML = '';
+    if(!state.opened.length){
+      var e = document.createElement('li'); e.className = 'empty'; e.style.border = '0'; e.style.background = 'transparent';
+      e.textContent = '还没有星星，去瓶子里取一颗吧'; ul.appendChild(e);
+    }
+    state.opened.slice().reverse().forEach(function(i){
+      var li = document.createElement('li');
+      li.style.setProperty('--c', starColor[i]);
+      var sm = document.createElement('small'); sm.textContent = '第 ' + (i+1) + ' 颗星星';
+      li.appendChild(sm); li.appendChild(document.createTextNode(MESSAGES[i]));
+      ul.appendChild(li);
+    });
+    document.getElementById('refill').style.display = state.opened.length === N ? 'block' : 'none';
+    drawer.classList.add('on');
+  }
+  document.getElementById('refill').addEventListener('click', function(){
+    state.opened = []; save(); renderJar();
+    drawer.classList.remove('on');
+    sparkleAt(jarWrap);
+    toast('星星都回到瓶子里啦 ✨');
+  });
+  document.getElementById('countBtn').addEventListener('click', function(e){ e.stopPropagation(); openDrawer(); });
+  document.getElementById('closeDrawer').addEventListener('click', function(){ drawer.classList.remove('on'); });
+
+  /* ---------------- guirnalda ---------------- */
+  (function garland(){
+    var g = document.getElementById('garland');
+    var W = window.innerWidth;
+    g.setAttribute('viewBox', '0 0 '+W+' 90');
+    var path = 'M -10 18 Q '+(W*0.25)+' 70 '+(W*0.5)+' 34 Q '+(W*0.75)+' 0 '+(W+10)+' 46';
+    var html = '<path d="'+path+'" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" fill="none"/>';
+    var tmp = document.createElementNS(NS,'path'); tmp.setAttribute('d', path); g.appendChild(tmp);
+    var L = tmp.getTotalLength();
+    var n = Math.max(8, Math.round(W/48));
+    var bulbs = ['#ffd36e','#ff9ec7','#9ad8ff','#ffe3a3'];
+    var pts = [];
+    for(var q=1;q<n;q++) pts.push(tmp.getPointAtLength(L*q/n));
+    g.removeChild(tmp);
+    for(var i=1;i<n;i++){
+      var pt = pts[i-1];
+      var c = bulbs[i%bulbs.length];
+      var delay = (i*0.37 % 3).toFixed(2);
+      html += '<circle cx="'+pt.x.toFixed(1)+'" cy="'+(pt.y+7).toFixed(1)+'" r="9" fill="'+c+'" opacity="0.25" class="twinkle" style="animation-delay:'+delay+'s"/>';
+      html += '<circle cx="'+pt.x.toFixed(1)+'" cy="'+(pt.y+7).toFixed(1)+'" r="3.5" fill="'+c+'" class="twinkle" style="animation-delay:'+delay+'s"/>';
+    }
+    g.innerHTML = html;
+  })();
+
+  /* ---------------- destellos (canvas) ---------------- */
+  var cv = document.getElementById('fx'), ctx = cv.getContext('2d');
+  var W, H, DPR, motes = [], dust = [];
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W*DPR; cv.height = H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  resize(); window.addEventListener('resize', resize);
+  for(var i=0;i<34;i++){
+    motes.push({ x:Math.random()*W, y:Math.random()*H*0.75, r:0.6+Math.random()*1.6, ph:Math.random()*6.28, sp:0.01+Math.random()*0.02, vy:0.05+Math.random()*0.1 });
+  }
+  function spawnDust(x, y, n, color){
+    for(var i=0;i<n;i++){
+      var a = Math.random()*6.28, v = 0.3 + Math.random()*1.2;
+      dust.push({ x:x, y:y, vx:Math.cos(a)*v, vy:Math.sin(a)*v, life:0, max:40+Math.random()*30, r:1+Math.random()*1.8, c:color || '#ffe3a3' });
+    }
+  }
+  function burst(x, y, color){ spawnDust(x, y, reduced ? 0 : 40, color); }
+  function sparkleAt(el){
+    var r = el.getBoundingClientRect();
+    spawnDust(r.left + r.width/2, r.top + r.height*0.6, reduced ? 0 : 14);
+  }
+  function hexA(hex, a){
+    var n = parseInt(hex.slice(1),16);
+    return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+  }
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    ctx.globalCompositeOperation = 'lighter';
+    for(var i=0;i<motes.length;i++){
+      var m = motes[i];
+      if(!reduced){ m.ph += m.sp; m.y -= m.vy; }
+      if(m.y < -10){ m.y = H*0.75; m.x = Math.random()*W; }
+      var a = 0.25 + 0.5*(0.5+0.5*Math.sin(m.ph));
+      var g = ctx.createRadialGradient(m.x,m.y,0,m.x,m.y,m.r*5);
+      g.addColorStop(0,'rgba(255,225,170,'+a+')'); g.addColorStop(1,'rgba(255,225,170,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(m.x,m.y,m.r*5,0,6.2832); ctx.fill();
+    }
+    for(var d=dust.length-1; d>=0; d--){
+      var p = dust[d]; p.life++;
+      if(p.life > p.max){ dust.splice(d,1); continue; }
+      p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy = p.vy*0.96 - 0.01;
+      var t = 1 - p.life/p.max;
+      ctx.fillStyle = hexA(p.c, t*0.9);
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r*t+0.3,0,6.2832); ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  renderJar();
+})();
+</script>
+</body>
+</html>
